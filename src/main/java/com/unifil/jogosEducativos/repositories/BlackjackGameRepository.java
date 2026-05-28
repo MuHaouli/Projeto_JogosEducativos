@@ -1,4 +1,4 @@
-package com.unifil.jogoseducativos.repositories;
+package com.unifil.jogosEducativos.repositories;
 
 import com.unifil.jogosEducativos.entities.BlackjackGameEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
