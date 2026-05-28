@@ -1,7 +1,19 @@
 package com.unifil.jogosEducativos.models;
 
 public class Player extends Person {
-    public Player(String cpf, String nome) {
-        super(cpf, nome);
+
+    private boolean stopped;
+
+    public Player(String name) {
+        super(name);
+        this.stopped = false;
+    }
+
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    public void stop() {
+        this.stopped = true;
     }
 }

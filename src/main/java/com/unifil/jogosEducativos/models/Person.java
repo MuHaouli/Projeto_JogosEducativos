@@ -4,48 +4,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Person {
-    private String nome;
-    private String cpf;
 
-    private List<String> hand = new ArrayList<>();
+    private final String name;
+    private final List<Card> hand;
 
-    public Person(String cpf, String nome) {
-        this.cpf = cpf;
-        this.nome = nome;
+    protected Person(String name) {
+        this.name = name;
+        this.hand = new ArrayList<>();
     }
 
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getCpf() {
-        return cpf;
-    }
-
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
-    }
-
-    public void grabCard(String card){
-        hand.add(card);
-    }
-
-    public List<String> getHand() {
+    public List<Card> getHand() {
         return hand;
     }
 
-    public int getHandValue(Cards cards){
+    public void addCard(Card card) {
+        hand.add(card);
+    }
 
-        int total = 0;
+    public int calculateScore() {
+        int score = hand.stream().mapToInt(Card::getValue).sum();
+        long aceCount = hand.stream().filter(card -> "A".equals(card.getRank())).count();
 
-        for(String card : hand){
-            total += cards.getCardValue(card);
+        while (score > 21 && aceCount > 0) {
+            score -= 10;
+            aceCount--;
         }
 
-        return total;
+        return score;
     }
 }
