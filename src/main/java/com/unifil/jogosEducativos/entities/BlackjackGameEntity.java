@@ -1,10 +1,6 @@
 package com.unifil.jogosEducativos.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "blackjack_games")
@@ -14,13 +10,31 @@ public class BlackjackGameEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String gameId;
+
+    @Column(nullable = false)
     private String playerName;
+
+    @Column(nullable = false)
     private Integer playerScore;
+
+    @Column(nullable = false)
     private Integer dealerScore;
+
+    @Column(nullable = false)
     private String status;
 
     public Long getId() {
         return id;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(String gameId) {
+        this.gameId = gameId;
     }
 
     public String getPlayerName() {

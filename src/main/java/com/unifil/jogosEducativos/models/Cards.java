@@ -1,35 +1,15 @@
 package com.unifil.jogosEducativos.models;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
-import java.util.Map;
-import java.util.HashMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Entity
 public class Cards {
 
     private final List<Card> deck;
 
-    final @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
     public Cards() {
-        this.id = 1L;
         this.deck = createDeck();
-        Collections.shuffle(this.deck);
-    }
-
-    public Cards(Long id) {
-        this.id = id;
-        this.deck = createDeck();
-        // TODO permitir seed no embaralhamento para testes deterministas
         Collections.shuffle(this.deck);
     }
 

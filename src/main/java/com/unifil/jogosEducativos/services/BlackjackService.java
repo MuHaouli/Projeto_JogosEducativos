@@ -33,15 +33,16 @@ public class BlackjackService {
         game.startRound();
 
         inMemoryGames.put(gameId, game);
-        // TODO persistir gameId real em tabela de partidas
         saveSnapshot(game, "STARTED");
 
         return toResponse(game, "IN_PROGRESS");
     }
 
     public GameStateResponseDTO hit(String gameId) {
-        // TODO bloquear hit quando a rodada estiver finalizada
         BlackjackGame game = getGameOrThrow(gameId);
+        if (game.isFinished()) {
+            throw new IllegalStateException("Rodada encerrada. Nao e possivel pedir carta (hit).");
+        }
         game.hitPlayer();
 
         String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
@@ -51,8 +52,10 @@ public class BlackjackService {
     }
 
     public GameStateResponseDTO stand(String gameId) {
-        // TODO apos implementar turno do dealer, refletir status final mais detalhado
         BlackjackGame game = getGameOrThrow(gameId);
+        if (game.isFinished()) {
+            throw new IllegalStateException("Rodada encerrada. Nao e possivel parar novamente (stand).");
+        }
         game.standPlayer();
 
         String result = game.gameResult();
@@ -61,8 +64,13 @@ public class BlackjackService {
         return toResponse(game, result);
     }
 
+    public GameStateResponseDTO getState(String gameId) {
+        BlackjackGame game = getGameOrThrow(gameId);
+        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
+        return toResponse(game, result);
+    }
+
     private BlackjackGame getGameOrThrow(String gameId) {
-        // TODO substituir IllegalArgumentException por excecao de dominio + handler global
         BlackjackGame game = inMemoryGames.get(gameId);
         if (game == null) {
             throw new IllegalArgumentException("Partida nao encontrada: " + gameId);
@@ -71,14 +79,21 @@ public class BlackjackService {
     }
 
     private void saveSnapshot(BlackjackGame game, String status) {
-        // TODO salvar cartas do player/dealer (hoje salva apenas placar)
-        BlackjackGameEntity entity = new BlackjackGameEntity();
-        entity.setPlayerName(game.getPlayer().getName());
-        entity.setPlayerScore(game.getPlayer().calculateScore());
-        entity.setDealerScore(game.getDealer().calculateScore());
-        entity.setStatus(status);
-
-        repository.save(entity);
+        repository.findByGameId(game.getGameId()).ifPresentOrElse(existing -> {
+            existing.setPlayerName(game.getPlayer().getName());
+            existing.setPlayerScore(game.getPlayer().calculateScore());
+            existing.setDealerScore(game.getDealer().calculateScore());
+            existing.setStatus(status);
+            repository.save(existing);
+        }, () -> {
+            BlackjackGameEntity entity = new BlackjackGameEntity();
+            entity.setGameId(game.getGameId());
+            entity.setPlayerName(game.getPlayer().getName());
+            entity.setPlayerScore(game.getPlayer().calculateScore());
+            entity.setDealerScore(game.getDealer().calculateScore());
+            entity.setStatus(status);
+            repository.save(entity);
+        });
     }
 
     private GameStateResponseDTO toResponse(BlackjackGame game, String result) {

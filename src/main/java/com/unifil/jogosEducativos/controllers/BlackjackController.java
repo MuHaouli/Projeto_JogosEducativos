@@ -4,12 +4,11 @@ import com.unifil.jogosEducativos.dto.GameStateResponseDTO;
 import com.unifil.jogosEducativos.dto.StartGameRequestDTO;
 import com.unifil.jogosEducativos.services.BlackjackService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/blackjack")
 public class BlackjackController {
@@ -21,20 +20,26 @@ public class BlackjackController {
     }
 
     @PostMapping("/start")
-    public GameStateResponseDTO start(@Valid @RequestBody StartGameRequestDTO request) {
-        /*TODO retornar ResponseEntity com status HTTP explicito (ex: 201 para start)*/
-        return service.startGame(request);
+    public ResponseEntity<GameStateResponseDTO> start(@Valid @RequestBody StartGameRequestDTO request) {
+        GameStateResponseDTO body = service.startGame(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+    }
+
+    @GetMapping("/{gameId}")
+    public ResponseEntity<GameStateResponseDTO> getState(@PathVariable String gameId) {
+        GameStateResponseDTO body = service.getState(gameId);
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/{gameId}/hit")
-    public GameStateResponseDTO hit(@PathVariable String gameId) {
-        //TODO validar formato do gameId e padronizar erros de entrada
-        return service.hit(gameId);
+    public ResponseEntity<GameStateResponseDTO> hit(@PathVariable String gameId) {
+        GameStateResponseDTO body = service.hit(gameId);
+        return ResponseEntity.ok(body);
     }
 
     @PostMapping("/{gameId}/stand")
-    public GameStateResponseDTO stand(@PathVariable String gameId) {
-        // TODO adicionar endpoint GET /{gameId} para consulta do estado sem alterar rodada
-        return service.stand(gameId);
+    public ResponseEntity<GameStateResponseDTO> stand(@PathVariable String gameId) {
+        GameStateResponseDTO body = service.stand(gameId);
+        return ResponseEntity.ok(body);
     }
 }
