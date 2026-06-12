@@ -25,6 +25,18 @@ public class BlackjackGameEntity {
     @Column(nullable = false)
     private String status;
 
+    @Column(nullable = false)
+    private Integer betAmount;
+
+    @Column(nullable = false)
+    private Integer balance;
+
+    public Integer getBetAmount() { return betAmount; }
+    public void setBetAmount(Integer betAmount) { this.betAmount = betAmount; }
+
+    public Integer getBalance() { return balance; }
+    public void setBalance(Integer balance) { this.balance = balance; }
+
     public Long getId() {
         return id;
     }
