@@ -16,63 +16,90 @@ public class BlackjackService {
 
     private final BlackjackGameRepository repository;
     private final Map<String, BlackjackGame> inMemoryGames;
+    private final Map<String, Integer> playerBalances;
 
     public BlackjackService(BlackjackGameRepository repository) {
         this.repository = repository;
         this.inMemoryGames = new ConcurrentHashMap<>();
+        this.playerBalances = new ConcurrentHashMap<>();
     }
 
     public GameStateResponseDTO startGame(StartGameRequestDTO request) {
         String gameId = UUID.randomUUID().toString();
-        String playerName = request.playerName() == null || request.playerName().isBlank()
-                ? "Player 1"
-                : request.playerName();
+        String playerName = request.playerName().isBlank() ? "Player 1" : request.playerName();
+        int betAmount = request.betAmount();
 
-        BlackjackGame game = new BlackjackGame(gameId, playerName);
+        int balance = playerBalances.getOrDefault(playerName, 1500);
+        if (betAmount <= 0) {
+            throw new IllegalArgumentException("A aposta deve ser maior que zero.");
+        }
+        if (betAmount > balance) {
+            throw new IllegalArgumentException("Saldo insuficiente para essa aposta.");
+        }
+
+        balance -= betAmount;
+        playerBalances.put(playerName, balance);
+
+        BlackjackGame game = new BlackjackGame(gameId, playerName, betAmount);
         game.startRound();
 
         inMemoryGames.put(gameId, game);
+        saveSnapshot(game, balance, "IN_PROGRESS");
 
-        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
-        saveSnapshot(game, result);
-
-        return toDto(game, result);
+        return toDto(game, balance, "IN_PROGRESS");
     }
 
     public GameStateResponseDTO hit(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
-
         if (game.isFinished()) {
             throw new IllegalStateException("Rodada encerrada. Não é possível pedir carta (hit).");
         }
 
         game.hitPlayer();
+        int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
+        String status = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
 
-        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
-        saveSnapshot(game, result);
+        if (game.isFinished()) {
+            balance = adjustBalance(game, balance);
+            playerBalances.put(game.getPlayer().getName(), balance);
+        }
 
-        return toDto(game, result);
+        saveSnapshot(game, balance, status);
+        return toDto(game, balance, status);
     }
 
     public GameStateResponseDTO stand(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
-
         if (game.isFinished()) {
             throw new IllegalStateException("Rodada encerrada. Não é possível parar novamente (stand).");
         }
 
         game.standPlayer();
+        int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
+        balance = adjustBalance(game, balance);
+        playerBalances.put(game.getPlayer().getName(), balance);
 
-        String result = game.gameResult();
-        saveSnapshot(game, result);
+        String status = game.gameResult();
+        saveSnapshot(game, balance, status);
 
-        return toDto(game, result);
+        return toDto(game, balance, status);
     }
 
     public GameStateResponseDTO getState(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
-        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
-        return toDto(game, result);
+        int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
+        String status = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
+        return toDto(game, balance, status);
+    }
+
+    private int adjustBalance(BlackjackGame game, int balance) {
+        String result = game.gameResult();
+        if ("PLAYER_WIN".equals(result)) {
+            balance += game.getBetAmount() * 2;
+        } else if ("DRAW".equals(result)) {
+            balance += game.getBetAmount();
+        }
+        return balance;
     }
 
     private BlackjackGame getGameOrThrow(String gameId) {
@@ -83,12 +110,14 @@ public class BlackjackService {
         return game;
     }
 
-    private void saveSnapshot(BlackjackGame game, String status) {
+    private void saveSnapshot(BlackjackGame game, int balance, String status) {
         repository.findByGameId(game.getGameId()).ifPresentOrElse(existing -> {
             existing.setPlayerName(game.getPlayer().getName());
             existing.setPlayerScore(game.getPlayer().calculateScore());
             existing.setDealerScore(game.getDealer().calculateScore());
             existing.setStatus(status);
+            existing.setBalance(balance);
+            existing.setBetAmount(game.getBetAmount());
             repository.save(existing);
         }, () -> {
             BlackjackGameEntity entity = new BlackjackGameEntity();
@@ -97,11 +126,13 @@ public class BlackjackService {
             entity.setPlayerScore(game.getPlayer().calculateScore());
             entity.setDealerScore(game.getDealer().calculateScore());
             entity.setStatus(status);
+            entity.setBalance(balance);
+            entity.setBetAmount(game.getBetAmount());
             repository.save(entity);
         });
     }
 
-    private GameStateResponseDTO toDto(BlackjackGame game, String status) {
+    private GameStateResponseDTO toDto(BlackjackGame game, int balance, String status) {
         return new GameStateResponseDTO(
                 game.getGameId(),
                 game.getPlayer().getName(),
@@ -109,6 +140,8 @@ public class BlackjackService {
                 game.getDealerCards(),
                 game.getPlayer().calculateScore(),
                 game.getDealer().calculateScore(),
+                game.getBetAmount(),
+                balance,
                 game.isFinished(),
                 game.isFinished() ? status : null
         );
