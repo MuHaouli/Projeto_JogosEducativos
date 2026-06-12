@@ -1,6 +1,8 @@
 package com.unifil.jogosEducativos.entities;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "blackjack_games")
@@ -31,53 +33,42 @@ public class BlackjackGameEntity {
     @Column(nullable = false)
     private Integer balance;
 
+    @ElementCollection
+    @CollectionTable(name = "blackjack_player_cards", joinColumns = @JoinColumn(name = "blackjack_game_id"))
+    @Column(name = "card", nullable = false)
+    private List<String> playerCards = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "blackjack_dealer_cards", joinColumns = @JoinColumn(name = "blackjack_game_id"))
+    @Column(name = "card", nullable = false)
+    private List<String> dealerCards = new ArrayList<>();
+
+    public Long getId() { return id; }
+
+    public String getGameId() { return gameId; }
+    public void setGameId(String gameId) { this.gameId = gameId; }
+
+    public String getPlayerName() { return playerName; }
+    public void setPlayerName(String playerName) { this.playerName = playerName; }
+
+    public Integer getPlayerScore() { return playerScore; }
+    public void setPlayerScore(Integer playerScore) { this.playerScore = playerScore; }
+
+    public Integer getDealerScore() { return dealerScore; }
+    public void setDealerScore(Integer dealerScore) { this.dealerScore = dealerScore; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
     public Integer getBetAmount() { return betAmount; }
     public void setBetAmount(Integer betAmount) { this.betAmount = betAmount; }
 
     public Integer getBalance() { return balance; }
     public void setBalance(Integer balance) { this.balance = balance; }
 
-    public Long getId() {
-        return id;
-    }
+    public List<String> getPlayerCards() { return playerCards; }
+    public void setPlayerCards(List<String> playerCards) { this.playerCards = playerCards; }
 
-    public String getGameId() {
-        return gameId;
-    }
-
-    public void setGameId(String gameId) {
-        this.gameId = gameId;
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
-    }
-
-    public Integer getPlayerScore() {
-        return playerScore;
-    }
-
-    public void setPlayerScore(Integer playerScore) {
-        this.playerScore = playerScore;
-    }
-
-    public Integer getDealerScore() {
-        return dealerScore;
-    }
-
-    public void setDealerScore(Integer dealerScore) {
-        this.dealerScore = dealerScore;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public List<String> getDealerCards() { return dealerCards; }
+    public void setDealerCards(List<String> dealerCards) { this.dealerCards = dealerCards; }
 }

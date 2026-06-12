@@ -26,7 +26,9 @@ public class BlackjackService {
 
     public GameStateResponseDTO startGame(StartGameRequestDTO request) {
         String gameId = UUID.randomUUID().toString();
-        String playerName = request.playerName().isBlank() ? "Player 1" : request.playerName();
+        String playerName = request.playerName() == null || request.playerName().isBlank()
+                ? "Player 1"
+                : request.playerName();
         int betAmount = request.betAmount();
 
         int balance = playerBalances.getOrDefault(playerName, 1500);
@@ -44,9 +46,11 @@ public class BlackjackService {
         game.startRound();
 
         inMemoryGames.put(gameId, game);
-        saveSnapshot(game, balance, "IN_PROGRESS");
 
-        return toDto(game, balance, "IN_PROGRESS");
+        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
+        saveSnapshot(game, balance, result);
+
+        return toDto(game, balance, result);
     }
 
     public GameStateResponseDTO hit(String gameId) {
@@ -56,6 +60,7 @@ public class BlackjackService {
         }
 
         game.hitPlayer();
+
         int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
         String status = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
 
@@ -75,6 +80,7 @@ public class BlackjackService {
         }
 
         game.standPlayer();
+
         int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
         balance = adjustBalance(game, balance);
         playerBalances.put(game.getPlayer().getName(), balance);
@@ -90,6 +96,16 @@ public class BlackjackService {
         int balance = playerBalances.getOrDefault(game.getPlayer().getName(), 0);
         String status = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
         return toDto(game, balance, status);
+    }
+
+    public int deposit(String playerName, int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Valor de depósito inválido.");
+        }
+        int balance = playerBalances.getOrDefault(playerName, 1500);
+        balance += amount;
+        playerBalances.put(playerName, balance);
+        return balance;
     }
 
     private int adjustBalance(BlackjackGame game, int balance) {
@@ -110,6 +126,10 @@ public class BlackjackService {
         return game;
     }
 
+    public int getStateForNewPlayer(String playerName) {
+        return playerBalances.getOrDefault(playerName, 1500);
+    }
+
     private void saveSnapshot(BlackjackGame game, int balance, String status) {
         repository.findByGameId(game.getGameId()).ifPresentOrElse(existing -> {
             existing.setPlayerName(game.getPlayer().getName());
@@ -118,6 +138,8 @@ public class BlackjackService {
             existing.setStatus(status);
             existing.setBalance(balance);
             existing.setBetAmount(game.getBetAmount());
+            existing.setPlayerCards(game.getPlayerCards());
+            existing.setDealerCards(game.getDealerCards());
             repository.save(existing);
         }, () -> {
             BlackjackGameEntity entity = new BlackjackGameEntity();
@@ -128,6 +150,8 @@ public class BlackjackService {
             entity.setStatus(status);
             entity.setBalance(balance);
             entity.setBetAmount(game.getBetAmount());
+            entity.setPlayerCards(game.getPlayerCards());
+            entity.setDealerCards(game.getDealerCards());
             repository.save(entity);
         });
     }

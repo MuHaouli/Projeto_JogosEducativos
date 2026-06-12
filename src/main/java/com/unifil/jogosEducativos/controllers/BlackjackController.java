@@ -3,24 +3,15 @@ package com.unifil.jogosEducativos.controllers;
 import com.unifil.jogosEducativos.dto.GameStateResponseDTO;
 import com.unifil.jogosEducativos.dto.StartGameRequestDTO;
 import com.unifil.jogosEducativos.services.BlackjackService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        methods = {
-                RequestMethod.GET,
-                RequestMethod.POST,
-                RequestMethod.PUT,
-                RequestMethod.DELETE,
-                RequestMethod.OPTIONS
-        },
-        allowedHeaders = "*"
-)
+import jakarta.validation.Valid;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/blackjack")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BlackjackController {
 
     private final BlackjackService service;
@@ -32,7 +23,7 @@ public class BlackjackController {
     @PostMapping("/start")
     public ResponseEntity<GameStateResponseDTO> start(@Valid @RequestBody StartGameRequestDTO request) {
         GameStateResponseDTO body = service.startGame(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        return ResponseEntity.status(201).body(body);
     }
 
     @GetMapping("/{gameId}")
@@ -51,5 +42,15 @@ public class BlackjackController {
     public ResponseEntity<GameStateResponseDTO> stand(@PathVariable String gameId) {
         GameStateResponseDTO body = service.stand(gameId);
         return ResponseEntity.ok(body);
+    }
+
+    @PostMapping("/{playerName}/deposit")
+    public ResponseEntity<Map<String, Integer>> deposit(@PathVariable String playerName, @RequestBody Map<String, Integer> body) {
+        Integer amount = body.get("amount");
+        if (amount == null || amount <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("balance", service.getStateForNewPlayer(playerName)));
+        }
+        int newBalance = service.deposit(playerName, amount);
+        return ResponseEntity.ok(Map.of("balance", newBalance));
     }
 }

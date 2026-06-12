@@ -20,10 +20,6 @@ public class BlackjackGame {
         this.finished = false;
     }
 
-    public int getBetAmount() {
-        return betAmount;
-    }
-
     public void startRound() {
         player.addCard(deck.drawCard());
         dealer.addCard(deck.drawCard());
@@ -39,7 +35,6 @@ public class BlackjackGame {
         if (finished) {
             throw new IllegalStateException("Rodada encerrada.");
         }
-
         player.addCard(deck.drawCard());
         if (player.calculateScore() > 21) {
             finished = true;
@@ -50,7 +45,6 @@ public class BlackjackGame {
         if (finished) {
             throw new IllegalStateException("Rodada encerrada.");
         }
-
         while (dealer.calculateScore() < 17) {
             dealer.addCard(deck.drawCard());
         }
@@ -64,33 +58,20 @@ public class BlackjackGame {
         if (playerScore > 21) {
             return "DEALER_WIN";
         }
-
         if (dealerScore > 21) {
             return "PLAYER_WIN";
         }
-
         if (playerScore == dealerScore) {
             return "DRAW";
         }
-
         return playerScore > dealerScore ? "PLAYER_WIN" : "DEALER_WIN";
     }
 
-    public String getGameId() {
-        return gameId;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public Dealer getDealer() {
-        return dealer;
-    }
-
-    public boolean isFinished() {
-        return finished;
-    }
+    public String getGameId() { return gameId; }
+    public Player getPlayer() { return player; }
+    public Dealer getDealer() { return dealer; }
+    public boolean isFinished() { return finished; }
+    public int getBetAmount() { return betAmount; }
 
     public List<String> getPlayerCards() {
         return player.getHand().stream().map(Card::getLabel).toList();

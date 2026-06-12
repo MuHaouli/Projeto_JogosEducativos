@@ -8,3 +8,4 @@ import java.util.Optional;
 public interface BlackjackGameRepository extends JpaRepository<BlackjackGameEntity, Long> {
     Optional<BlackjackGameEntity> findByGameId(String gameId);
 }
+
