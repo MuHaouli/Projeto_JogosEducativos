@@ -19,15 +19,17 @@ public class BlackjackGame {
     }
 
     public void startRound() {
-        // TODO validar blackjack natural logo apos distribuicao inicial
         player.addCard(deck.drawCard());
         dealer.addCard(deck.drawCard());
         player.addCard(deck.drawCard());
         dealer.addCard(deck.drawCard());
+
+        if (player.calculateScore() == 21 || dealer.calculateScore() == 21) {
+            finished = true;
+        }
     }
 
     public void hitPlayer() {
-        // TODO impedir hit quando player ja escolheu stand
         if (finished) {
             throw new IllegalStateException("Rodada encerrada.");
         }
@@ -39,24 +41,17 @@ public class BlackjackGame {
     }
 
     public void standPlayer() {
-        player.stop();
-        while(dealer.calculateScore() < 17){
-            dealer.addCard(deck.drawCard());
+        if (finished) {
+            throw new IllegalStateException("Rodada encerrada.");
         }
 
+        while (dealer.calculateScore() < 17) {
+            dealer.addCard(deck.drawCard());
+        }
         finished = true;
     }
 
-
-    //  Se jogador passou de 21 -> DEALER_WIN
-//Se dealer passou de 21 -> PLAYER_WIN
-//Se jogador > dealer -> PLAYER_WIN
-//Se jogador == dealer -> DRAW
-//Caso contrario -> DEALER_WIN
     public String gameResult() {
-        // TODO implementar regras completas (blackjack natural, push de blackjack e estados finais detalhados)
-
-
         int playerScore = player.calculateScore();
         int dealerScore = dealer.calculateScore();
 
@@ -64,7 +59,7 @@ public class BlackjackGame {
             return "DEALER_WIN";
         }
 
-        if (dealerScore > 21 ) {
+        if (dealerScore > 21) {
             return "PLAYER_WIN";
         }
 
