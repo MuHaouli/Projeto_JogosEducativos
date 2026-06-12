@@ -8,14 +8,20 @@ public class BlackjackGame {
     private final Player player;
     private final Dealer dealer;
     private final Cards deck;
+    private final int betAmount;
     private boolean finished;
 
-    public BlackjackGame(String gameId, String playerName) {
+    public BlackjackGame(String gameId, String playerName, int betAmount) {
         this.gameId = gameId;
         this.player = new Player(playerName);
         this.dealer = new Dealer();
         this.deck = new Cards();
+        this.betAmount = betAmount;
         this.finished = false;
+    }
+
+    public int getBetAmount() {
+        return betAmount;
     }
 
     public void startRound() {
