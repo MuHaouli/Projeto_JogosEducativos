@@ -1,7 +1,6 @@
 package com.unifil.jogosEducativos.dto;
 
 import java.util.List;
-
 public record GameStateResponseDTO(
         String gameId,
         String playerName,
@@ -11,5 +10,4 @@ public record GameStateResponseDTO(
         int dealerScore,
         boolean finished,
         String result
-) {
-}
+) {}
