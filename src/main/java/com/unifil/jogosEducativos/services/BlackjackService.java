@@ -23,7 +23,6 @@ public class BlackjackService {
     }
 
     public GameStateResponseDTO startGame(StartGameRequestDTO request) {
-        // TODO mover criacao de gameId para estrategia/gerador dedicado se quiser testar melhor
         String gameId = UUID.randomUUID().toString();
         String playerName = request.playerName() == null || request.playerName().isBlank()
                 ? "Player 1"
@@ -33,47 +32,53 @@ public class BlackjackService {
         game.startRound();
 
         inMemoryGames.put(gameId, game);
-        saveSnapshot(game, "STARTED");
 
-        return toResponse(game, "IN_PROGRESS");
+        String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
+        saveSnapshot(game, result);
+
+        return toDto(game, result);
     }
 
     public GameStateResponseDTO hit(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
+
         if (game.isFinished()) {
-            throw new IllegalStateException("Rodada encerrada. Nao e possivel pedir carta (hit).");
+            throw new IllegalStateException("Rodada encerrada. Não é possível pedir carta (hit).");
         }
+
         game.hitPlayer();
 
         String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
         saveSnapshot(game, result);
 
-        return toResponse(game, result);
+        return toDto(game, result);
     }
 
     public GameStateResponseDTO stand(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
+
         if (game.isFinished()) {
-            throw new IllegalStateException("Rodada encerrada. Nao e possivel parar novamente (stand).");
+            throw new IllegalStateException("Rodada encerrada. Não é possível parar novamente (stand).");
         }
+
         game.standPlayer();
 
         String result = game.gameResult();
         saveSnapshot(game, result);
 
-        return toResponse(game, result);
+        return toDto(game, result);
     }
 
     public GameStateResponseDTO getState(String gameId) {
         BlackjackGame game = getGameOrThrow(gameId);
         String result = game.isFinished() ? game.gameResult() : "IN_PROGRESS";
-        return toResponse(game, result);
+        return toDto(game, result);
     }
 
     private BlackjackGame getGameOrThrow(String gameId) {
         BlackjackGame game = inMemoryGames.get(gameId);
         if (game == null) {
-            throw new IllegalArgumentException("Partida nao encontrada: " + gameId);
+            throw new IllegalArgumentException("Partida não encontrada: " + gameId);
         }
         return game;
     }
@@ -96,8 +101,7 @@ public class BlackjackService {
         });
     }
 
-    private GameStateResponseDTO toResponse(BlackjackGame game, String result) {
-        // TODO expor campo de status da rodada separado de result (ex: IN_PROGRESS, FINISHED)
+    private GameStateResponseDTO toDto(BlackjackGame game, String status) {
         return new GameStateResponseDTO(
                 game.getGameId(),
                 game.getPlayer().getName(),
@@ -106,7 +110,7 @@ public class BlackjackService {
                 game.getPlayer().calculateScore(),
                 game.getDealer().calculateScore(),
                 game.isFinished(),
-                result
+                game.isFinished() ? status : null
         );
     }
 }
