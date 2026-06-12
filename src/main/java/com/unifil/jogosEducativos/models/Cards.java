@@ -1,21 +1,23 @@
 package com.unifil.jogosEducativos.models;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 
 public class Cards {
 
-    private final List<Card> deck;
+    private final Deque<Card> deck;
 
     public Cards() {
-        this.deck = createDeck();
-        Collections.shuffle(this.deck);
+        List<Card> cards = createDeck();
+        Collections.shuffle(cards);
+        this.deck = new ArrayDeque<>(cards);
     }
 
     public Card drawCard() {
         if (deck.isEmpty()) {
-            // TODO decidir estrategia quando acabar baralho (reshuffle ou encerrar jogo)
             throw new IllegalStateException("Baralho vazio. Reinicie a rodada.");
         }
         return deck.removeFirst();
