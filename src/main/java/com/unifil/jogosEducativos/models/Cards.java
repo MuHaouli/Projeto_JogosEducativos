@@ -25,7 +25,7 @@ public class Cards {
 
     private List<Card> createDeck() {
         List<Card> cards = new ArrayList<>();
-        String[] suits = {"S", "H", "D", "C"};
+        String[] suits = {"♠", "♥", "◆", "♣"};
 
         addNumberCards(cards, suits);
         addFaceCards(cards, suits);
