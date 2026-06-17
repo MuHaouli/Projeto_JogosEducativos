@@ -45,7 +45,10 @@ public class BlackjackController {
     }
 
     @PostMapping("/{playerName}/deposit")
-    public ResponseEntity<Map<String, Integer>> deposit(@PathVariable String playerName, @RequestBody Map<String, Integer> body) {
+    public ResponseEntity<Map<String, Integer>> deposit(
+            @PathVariable String playerName,
+            @RequestBody Map<String, Integer> body) {
+
         Integer amount = body.get("amount");
         if (amount == null || amount <= 0) {
             return ResponseEntity.badRequest().body(Map.of("balance", service.getStateForNewPlayer(playerName)));

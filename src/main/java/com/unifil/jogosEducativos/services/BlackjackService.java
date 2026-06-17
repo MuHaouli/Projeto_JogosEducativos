@@ -138,8 +138,8 @@ public class BlackjackService {
             existing.setStatus(status);
             existing.setBalance(balance);
             existing.setBetAmount(game.getBetAmount());
-            existing.setPlayerCards(game.getPlayerCards());
-            existing.setDealerCards(game.getDealerCards());
+            existing.setPlayerCards(new java.util.ArrayList<>(game.getPlayerCards()));
+            existing.setDealerCards(new java.util.ArrayList<>(game.getDealerCards()));
             repository.save(existing);
         }, () -> {
             BlackjackGameEntity entity = new BlackjackGameEntity();
@@ -150,8 +150,8 @@ public class BlackjackService {
             entity.setStatus(status);
             entity.setBalance(balance);
             entity.setBetAmount(game.getBetAmount());
-            entity.setPlayerCards(game.getPlayerCards());
-            entity.setDealerCards(game.getDealerCards());
+            entity.setPlayerCards(new java.util.ArrayList<>(game.getPlayerCards()));
+            entity.setDealerCards(new java.util.ArrayList<>(game.getDealerCards()));
             repository.save(entity);
         });
     }
